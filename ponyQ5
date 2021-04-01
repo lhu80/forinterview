@@ -1,0 +1,53 @@
+#include <bits/stdc++.h>
+#define fo(i,a,b) for(int i=a;i<=b;i++)
+#define pii pair<int,int>
+#define Please return
+#define AC 0
+using namespace std;
+template <class T>
+void read(T &val) { T x = 0; T bz = 1; char c; for (c = getchar(); (c<'0' || c>'9') && c != '-'; c = getchar()); if (c == '-') { bz = -1; c = getchar(); }for (; c >= '0' && c <= '9'; c = getchar()) x = x * 10 + c - 48; val = x * bz; }
+ 
+int n,m;
+queue<pii>qq[2];
+int mp[1100][1100],nw;
+void move(){
+    while(!qq[nw].empty()){
+        auto tp = qq[nw].front();qq[nw].pop();
+        if(mp[tp.first][tp.second]<8) continue;
+        int add = mp[tp.first][tp.second]/8;
+        fo(i,-1,1){
+            fo(j,-1,1){
+                if(i==0&&j==0) continue;
+                mp[tp.first+i][tp.second+j]+=add;
+                if(mp[tp.first+i][tp.second+j]>=8) qq[nw^1].push({tp.first+i,tp.second+j});
+            }
+        }
+        mp[tp.first][tp.second]%=8;
+    }
+    nw^=1;
+}
+ 
+int sum[1100][1100];
+void change(int &x){//打表发现，半径不超过100
+    x = min(x,100);x = max(x,-100);
+    x+=500;
+}
+int main(){
+    read(n);read(m);
+    if(n>=8) qq[0].push({500,500});
+    mp[500][500] = n;
+    while(!qq[nw].empty()){
+        move();
+    }
+    fo(i,1,1000){
+        fo(j,1,1000){
+            sum[i][j] = sum[i-1][j]+sum[i][j-1]-sum[i-1][j-1]+mp[i][j];
+        }
+    }
+    while(m--){
+        int x1,y1,x2,y2;read(x1);read(y1);read(x2);read(y2);
+        change(x1);change(y1);change(x2);change(y2);
+        printf("%d\n",sum[x2][y2] - sum[x1-1][y2] - sum[x2][y1-1] + sum[x1-1][y1-1]);
+    }
+    Please AC;
+}
