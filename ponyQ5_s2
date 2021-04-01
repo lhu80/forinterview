@@ -1,0 +1,107 @@
+#include
+#include
+using namespace std;
+const int ms = 128;
+void print1(int m[ms][ms], int s = 8) {
+    for(int i=-s; i<=s; i++) {
+        for(int j=-s; j<=s; j++)
+            if(abs(i)<=abs(j)) cout << m[abs(i)][abs(j)] << ' ';
+            else cout << m[abs(j)][abs(i)] << ' ';
+        cout << endl;
+    }
+    cout << "----------------" << endl;
+}
+void print2(int m[ms*2][ms*2], int s = 8) {
+    for(int i=ms-s; i<=ms+s; i++) {
+        for(int j=ms-s; j<=ms+s; j++)
+            cout << m[i][j] << ' ';
+        cout << endl;
+    }
+    cout << "----------------" << endl;
+}
+void weight(int bff[ms][ms], int x, int y, int f = 0) {
+    if(x y) return;
+    if(x==0 && y==0) bff[x][y] += 4;
+    else if(x==0 && !(f==1)) bff[x][y] += 2;
+    else if(x==y && !(f==2)) bff[x][y] += 2;
+    else bff[x][y] += 1;
+}
+void trans(int bff[ms][ms], int x, int y) {
+    if(x==0 && y==1) bff[x][y] -= 6;
+    else if(y-x==1) bff[x][y] -= 7;
+    else bff[x][y] -= 8;
+    weight(bff, x-1, y-1, x==y?2:0);
+    weight(bff, x-1, y);
+    weight(bff, x-1, y+1);
+    weight(bff, x, y-1, x==0?1:0);
+    weight(bff, x, y+1, x==0?1:0);
+    weight(bff, x+1, y-1);
+    weight(bff, x+1, y);
+    weight(bff, x+1, y+1, x==y?2:0);
+}
+void update(int m[ms][ms], bool & noUpdate) {
+    static int s = 1;
+    int bff[ms][ms];
+    noUpdate = true;
+    memset(bff, 0, sizeof(bff));
+    if(m[0][0]>=8) {
+        noUpdate = false;
+        bff[0][0] -= 8; bff[0][1] ++;
+        bff[1][1] ++;
+    }
+    for(int i=0; i < s; i++)
+        for(int j=i; j < s; j++)
+        if(m[i][j]>=8 && !(i==0 && j==0)) {
+            noUpdate = false;
+            trans(bff, i, j);
+        }
+    if(bff[0][s]>0) s++;
+    for(int i=0; i< s; i++)
+        for(int j=i; j < s; j++)
+        m[i][j] += bff[i][j];
+}
+const int c = 100;
+void dev(int & x, int offset = 0) {
+    x += offset;
+    if(x>c) x = c;
+    else if(x<-c) x = -c;
+    x += ms;
+}
+int main() {
+    int m[ms][ms];
+    int n, q;
+    memset(m, 0, sizeof(m));
+    cin >> n >> q;
+    bool noUpdate = false;
+    m[0][0] = n;
+    while(!noUpdate) update(m, noUpdate);
+    int mm[ms*2][ms*2];
+    int sum[ms*2][ms*2];
+    memset(mm, 0, sizeof(mm));
+    memset(sum, 0, sizeof(sum));
+    for(int i=0; i<= c; i++)
+        for(int j=i; j <= c; j++) {
+            mm[ms+i][ms+j] = m[i][j];
+            mm[ms+i][ms-j] = m[i][j];
+            mm[ms-i][ms+j] = m[i][j];
+            mm[ms-i][ms-j] = m[i][j];
+            mm[ms+j][ms+i] = m[i][j];
+            mm[ms+j][ms-i] = m[i][j];
+            mm[ms-j][ms+i] = m[i][j];
+            mm[ms-j][ms-i] = m[i][j];
+        }
+    for(int i=ms-c; i<= ms+c; i++)
+        for(int j=ms-c; j <= ms+c; j++) {
+            sum[i][j] = mm[i][j] + sum[i-1][j] + sum[i][j-1] - sum[i-1][j-1];
+        }
+    //print2(mm);
+    //print2(sum);
+    while(q--) {
+        int x1, y1, x2, y2;
+        cin >> x1 >> y1 >> x2 >> y2;
+        dev(x1,-1); dev(y1,-1); dev(x2); dev(y2);
+        //cout << " " << x1 << " " << y1 << " " << x2 << " " << y2 << endl;
+        //cout << " " << sum[x1][y1] << " " << sum[x2][y2] << " " << sum[x1][y2] << " " << sum[x2][y1] << endl;
+        cout << sum[x1][y1] - sum[x1][y2] - sum[x2][y1] + sum[x2][y2] << endl;
+    }
+}
